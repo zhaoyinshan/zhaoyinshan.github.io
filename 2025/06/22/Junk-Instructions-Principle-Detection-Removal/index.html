@@ -1,0 +1,825 @@
+
+
+<!DOCTYPE html>
+<html lang="en" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="Ys Zhao">
+  <meta name="keywords" content="ctf php bypass cve exploit">
+  
+    <meta name="description" content="针对各种花指令，介绍其原理、形式和实现方法，以及花指令的分析、去除方法。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Junk-Instructions-Principle-Detection-Removal">
+<meta property="og:url" content="https://zhaoyinshan.github.io/2025/06/22/Junk-Instructions-Principle-Detection-Removal/index.html">
+<meta property="og:site_name" content="学无止境">
+<meta property="og:description" content="针对各种花指令，介绍其原理、形式和实现方法，以及花指令的分析、去除方法。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://zhaoyinshan.github.io/images/Junk-Instructions-Principle-Detection-Removal/image-20250915223856118.png">
+<meta property="og:image" content="https://zhaoyinshan.github.io/images/Junk-Instructions-Principle-Detection-Removal/image-20250915224216829.png">
+<meta property="og:image" content="https://zhaoyinshan.github.io/images/Junk-Instructions-Principle-Detection-Removal/image-20250915225047835.png">
+<meta property="og:image" content="https://zhaoyinshan.github.io/images/Junk-Instructions-Principle-Detection-Removal/image-20250915225222716.png">
+<meta property="og:image" content="https://zhaoyinshan.github.io/images/Junk-Instructions-Principle-Detection-Removal/image-20250915230152044.png">
+<meta property="og:image" content="https://zhaoyinshan.github.io/images/Junk-Instructions-Principle-Detection-Removal/image-20250915231354029.png">
+<meta property="og:image" content="https://zhaoyinshan.github.io/images/Junk-Instructions-Principle-Detection-Removal/image-20250915234122669.png">
+<meta property="og:image" content="https://zhaoyinshan.github.io/images/Junk-Instructions-Principle-Detection-Removal/image-20250916000309221.png">
+<meta property="og:image" content="https://zhaoyinshan.github.io/images/Junk-Instructions-Principle-Detection-Removal/image-20250916000548664.png">
+<meta property="og:image" content="https://zhaoyinshan.github.io/images/Junk-Instructions-Principle-Detection-Removal/image-20250916002947562.png">
+<meta property="og:image" content="https://zhaoyinshan.github.io/images/Junk-Instructions-Principle-Detection-Removal/image-20250916004057492.png">
+<meta property="og:image" content="https://zhaoyinshan.github.io/images/Junk-Instructions-Principle-Detection-Removal/image-20250916014015621.png">
+<meta property="article:published_time" content="2025-06-22T08:33:22.000Z">
+<meta property="article:modified_time" content="2025-09-24T15:01:24.528Z">
+<meta property="article:author" content="Ys Zhao">
+<meta property="article:tag" content="reverse">
+<meta property="article:tag" content="junkcode">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://zhaoyinshan.github.io/images/Junk-Instructions-Principle-Detection-Removal/image-20250915223856118.png">
+  
+  
+  
+  <title>Junk-Instructions-Principle-Detection-Removal - 学无止境</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"zhaoyinshan.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":"Z1XmNsyzvPCeewc0LVMF9fNz-gzGzoHsz","app_key":"9UFExFuCt1wUgYwizqPZnI1s","server_url":"https://z1xmnsyz.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":true},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Just Listen</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>Home</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>Archives</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>Categories</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>Tags</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>About</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/links/" target="_self">
+                <i class="iconfont icon-link-fill"></i>
+                <span>Links</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Junk-Instructions-Principle-Detection-Removal"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-06-22 16:33" pubdate>
+          June 22, 2025 pm
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.7k words
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          23 mins
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Junk-Instructions-Principle-Detection-Removal</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="一、花指令的原理"><a href="#一、花指令的原理" class="headerlink" title="一、花指令的原理"></a>一、花指令的原理</h2><p>​	花指令的本质是干扰反汇编引擎正常工作的指令片段，不影响程序本身的执行结果。花指令可以干扰IDA 等反汇编工具生成正确的汇编代码、CFG（控制流图）、进一步干扰生成中间代码（IR）及伪代码。 对于只会使用IDA F5 功能进行逆向的人来说，简直就是致命杀手。按可执行性可分为<strong>不可执行花指令</strong>和**可执行花指令 **。但即使是可执行花指令，也不会改变程序的原功能。在x86平台，常见的<code>junk_code</code>如下：</p>
+<figure class="highlight xl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs xl">      指令                          操作码<br><span class="hljs-function"><span class="hljs-title">call</span> immed16     ----&gt;</span>    E8    <span class="hljs-comment">// 3字节指令，immed16为2字节，代表跳转指令的目的地址(16位)与下一条指令地址的偏移</span><br><span class="hljs-function"><span class="hljs-title">call</span> immed32     ----&gt;</span>    <span class="hljs-number">9</span>A    <span class="hljs-comment">// 5字节指令，immed32为4字节，代表跳转指令的目的地址(32位)与下一条指令地址的偏移</span><br><span class="hljs-function"><span class="hljs-title">jmp</span>  immed8      ----&gt;</span>    EB <br><span class="hljs-function"><span class="hljs-title">jmp</span>  immed16     ----&gt;</span>    E9 <br><span class="hljs-function"><span class="hljs-title">jmp</span>  immed32     ----&gt;</span>    EA <br><span class="hljs-function"><span class="hljs-title">loop</span> immed8      ----&gt;</span>    E2 <br><span class="hljs-function"><span class="hljs-title">ret</span>              ----&gt;</span>    C2<br><span class="hljs-function"><span class="hljs-title">retn</span>             ----&gt;</span>    C3<br></code></pre></td></tr></table></figure>
+
+<p>为了能够有效的迷惑反汇编器，同时又保证代码的正确运行，花指令必须满足以下两个基本特征：</p>
+<ul>
+<li>垃圾数据必须是某个合法指令的一部分。</li>
+<li>程序运行时，垃圾数据必须位于实际不可执行的代码路径。</li>
+</ul>
+<h2 id="1-反汇编算法与设计缺陷"><a href="#1-反汇编算法与设计缺陷" class="headerlink" title="1 反汇编算法与设计缺陷"></a>1 反汇编算法与设计缺陷</h2><p>反汇编算法分为<strong>线性扫描算法</strong>和<strong>递归下降算法</strong>(IDA)。</p>
+<h3 id="1-1-线性扫描算法"><a href="#1-1-线性扫描算法" class="headerlink" title="1.1 线性扫描算法"></a>1.1 线性扫描算法</h3><ul>
+<li>从入口开始，依次解析每一条指令，遇到分支指令不会递归进入分支。</li>
+<li>线性扫描算法的缺点在于：在冯诺依曼体系结构下，<strong>无法区分数据与代码，将代码段中嵌入的数据误解释为指令操作码，最后得到错误的反汇编</strong>。</li>
+<li>假如有一个函数 disAsm (addr) , 该函数可以对指定地址 addr 处反汇编一条指令，并将结果自动输出到屏幕，返回值是当前反汇编指令的长度。 你要如何驱动 disAsm 对一个完整的函数反汇编？</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs python">target = getFunctionAddress(mian)<br>targetEnd = getFunctionEnd(mian)<br>currentAddr = target<br><span class="hljs-keyword">while</span> currentAddr &lt; targetEnd:<br>    currentLen = disAsm(addr)<br>    currentAddr += currentLen<br></code></pre></td></tr></table></figure>
+
+<h3 id="1-2-递归下降算法"><a href="#1-2-递归下降算法" class="headerlink" title="1.2 递归下降算法"></a>1.2 递归下降算法</h3><ul>
+<li>从入口开始，依次解析每一条指令，遇到分支指令时递归进入分支。</li>
+<li>递归下降算法<strong>强调控制流的概念</strong>。控制流根据一条指令是否被另一条指令<strong>引用</strong>来决定是否对其进行反汇编。</li>
+<li>递归下降算法的缺点在于：可以构造<strong>必然条件</strong>或者<strong>互补条件</strong>，使得反汇编出错。</li>
+</ul>
+<h3 id="1-3-如何构造欺骗采用递归下降方法的反汇编引擎？"><a href="#1-3-如何构造欺骗采用递归下降方法的反汇编引擎？" class="headerlink" title="1.3 如何构造欺骗采用递归下降方法的反汇编引擎？"></a>1.3 如何构造欺骗采用递归下降方法的反汇编引擎？</h3><p>​	x86 指令集的长度不是固定的，有一些指令很短，只有1字节，有一些指令比较长，可能达到5字节， 甚至更长。不同的指令，其指令长度不是固定的。如果通过巧妙的构造，引导反汇编引擎解析一条错误的指令，扰乱解析指令的长度，就能使反汇编引擎无法按照正确的指令长度依次解析邻接未解析的指令，最终使反汇编引擎输出错误的反汇编结果。</p>
+<h2 id="二、-花指令的识别、实现、去除"><a href="#二、-花指令的识别、实现、去除" class="headerlink" title="二、 花指令的识别、实现、去除"></a>二、 花指令的识别、实现、去除</h2><h3 id="2-1-无条件转移花指令"><a href="#2-1-无条件转移花指令" class="headerlink" title="2.1 无条件转移花指令"></a>2.1 无条件转移花指令</h3><ul>
+<li>单次无条件转移：这种<code>jmp</code>单次跳转只能骗过线性扫描算法，<strong>会被IDA识别（递归下降）</strong>。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs asm">jmp LABEL1<br>  db junk_code;<br>LABEL1:<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>多次无条件转移：和单次跳转一样，这种也会被IDA识别。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs asm">__asm &#123;<br>    jmp LABEL1;<br>    _emit 68h;<br>LABEL1:<br>    jmp LABEL2;<br>    _emit 0CDh;<br>    _emit 20h;<br>LABEL2:<br>    jmp LABEL3;<br>    _emit 0E8h;<br>LABEL3:<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h3 id="2-2-互补跳转花指令"><a href="#2-2-互补跳转花指令" class="headerlink" title="2.2 互补跳转花指令"></a>2.2 互补跳转花指令</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs asm">__asm &#123;<br>    jz Label;<br>    jnz Label;<br>    _emit 0xC7;<br>Label:<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>简单的实现（msvc、32位）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span><span class="hljs-string">&lt;cstdio&gt;</span></span><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    __asm &#123;<br>        jz s;<br>        jnz s;<br>        _emit <span class="hljs-number">0xe9</span>;<br>    s:<br>    &#125;<br>    <span class="hljs-comment">// 这段asm主要的影响是0xe9会作为下一条指令的起始</span><br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;hello world!\n&quot;</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>编译结果：</p>
+<p><img src="/../images/Junk-Instructions-Principle-Detection-Removal/image-20250915223856118.png" srcset="/img/loading.gif" lazyload alt="image-20250915223856118"></p>
+<p>​	这种互补跳转让ida也识别错误，只需要将<code>E9</code>改为单字节指令，并且改为单字节指令后不影响程序正常功能即可。最好的单字节指令：<strong>nop</strong>。之后ida就能正常分析。</p>
+<p><img src="/../images/Junk-Instructions-Principle-Detection-Removal/image-20250915224216829.png" srcset="/img/loading.gif" lazyload alt="image-20250915224216829"></p>
+<h3 id="2-3-跳转构造花指令"><a href="#2-3-跳转构造花指令" class="headerlink" title="2.3 跳转构造花指令"></a>2.3 跳转构造花指令</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs asm">__asm &#123;<br>    push ebx;<br>    xor ebx, ebx;<br>    test ebx, ebx;<br>    jnz LABEL7;<br>    jz    LABEL8;<br>LABEL7:<br>    _emit 0xC7;<br>LABEL8:<br>    pop ebx;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>简单的实现（msvc、32位）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span><span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    __asm &#123;<br>        push ebx;<br>        xor ebx, ebx;<br>        test ebx, ebx;<br>        jnz s1;<br>        jz  s2;<br>    s1:<br>        _emit <span class="hljs-number">0xe9</span>;<br>    s2:<br>        pop ebx;一定要恢复ebx<br>    &#125;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;hello world!\n&quot;</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>ida将<code>s2</code>识别为<code>s1+1</code>。</p>
+<p><img src="/../images/Junk-Instructions-Principle-Detection-Removal/image-20250915225047835.png" srcset="/img/loading.gif" lazyload alt="image-20250915225047835"></p>
+<p>同样patch掉E9就能正常识别。</p>
+<p><img src="/../images/Junk-Instructions-Principle-Detection-Removal/image-20250915225222716.png" srcset="/img/loading.gif" lazyload alt="image-20250915225222716"></p>
+<h3 id="2-4-call-ret花指令"><a href="#2-4-call-ret花指令" class="headerlink" title="2.4 call&amp;ret花指令"></a>2.4 call&amp;ret花指令</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs asm">__asm &#123;<br>    call LABEL9;<br>    _emit 0x83;						;1字节<br>LABEL9:<br>    ;ret后不会跳转到_emit 0x83;而是跳转到汇编__emit 0xF3; 之后, 换句话说就是改变了返回地址<br>    add dword ptr ss : [esp] , 8;	;5字节<br>        ret;						;1字节<br>    __emit 0xF3;					;1字节<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>简单的实现（msvc、32位）：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span><span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    __asm &#123;<br>        call s;<br>        _emit <span class="hljs-number">0x83</span>;<br>    s:<br>        add dword ptr ss : [esp] , <span class="hljs-number">8</span>;<br>        ret;<br>        _emit <span class="hljs-number">0xf3</span>;<br>    &#125;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;hello world!\n&quot;</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>结合ida反汇编来解释为什么是add指令的第二个操作数是8。</p>
+<p><img src="/../images/Junk-Instructions-Principle-Detection-Removal/image-20250915230152044.png" srcset="/img/loading.gif" lazyload alt="image-20250915230152044"></p>
+<p>​	call指令会将返回地址(<strong>0x41188C</strong>)压栈，此时<code>[esp]</code>中就是返回地址，构造花指令一共使用了<code>1+5+1+1=8</code>字节的指令，因此在花指令中需要ret到正确的eip，而正确的eip是<code>[esp]+8</code>，所以<strong>add指令的第二个操作数是多少取决于用多少个字节来构造花指令</strong>。此处是8字节，花指令中ret时，[esp]已经是正确的返回地址(<strong>0x41188C+8&#x3D;0x411894</strong>)。</p>
+<p>​	patch的时候只需将所有的花指令(<strong>[0x41188C,0x411894)</strong>)改为nop即可。</p>
+<p><img src="/../images/Junk-Instructions-Principle-Detection-Removal/image-20250915231354029.png" srcset="/img/loading.gif" lazyload alt="image-20250915231354029"></p>
+<h3 id="2-5-裸函数花指令"><a href="#2-5-裸函数花指令" class="headerlink" title="2.5 裸函数花指令"></a>2.5 裸函数花指令</h3><p>这种裸函数，<strong>能构造更复杂的花指令，实现和去除的代价也更高</strong>，下面给一个最简单的实现，函数的功能是给指针a指向的地址写入整数5。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span><span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span><span class="hljs-string">&lt;stdlib.h&gt;</span></span><br><br><span class="hljs-comment">//naked:裸函数，编译器不维护该函数的栈帧，由程序员自己维护。</span><br><span class="hljs-type">void</span> _declspec(naked)_cdecl <span class="hljs-title function_">example5</span><span class="hljs-params">(<span class="hljs-type">int</span>* a)</span>&#123;<br>	__asm&#123;<br>		push ebp<br>		mov ebp, esp<br>		sub esp, <span class="hljs-number">0x40</span>;为局部变量分配空间。<br>		push ebx<br>		push esi<br>		push edi<br><br>		;模拟初始化<br>		mov eax, <span class="hljs-number">0xCCCCCCCC</span><br>		mov ecx, <span class="hljs-number">0x10</span><br>		;edi指向栈顶<br>		lea edi, dword ptr ds : [ebp - <span class="hljs-number">0x40</span>]<br>		;使用stosd指令将EAX中的值（<span class="hljs-number">0xCCCCCCCC</span>）复制到EDI指向的内存地址，共复制ECX（<span class="hljs-number">0x10</span>）次。<br>		rep stos dword ptr es : [edi] <br>	&#125;<br>	*a = <span class="hljs-number">5</span>;<br>	__asm&#123;<br>		call LABEL9;<br>        ;等价于 call [eip+<span class="hljs-number">1</span>]<br>		_emit <span class="hljs-number">0xE8</span>;<br>		_emit <span class="hljs-number">0x01</span>;<br>		_emit <span class="hljs-number">0x00</span>;<br>		_emit <span class="hljs-number">0x00</span>;<br>		_emit <span class="hljs-number">0x00</span>;<br>	LABEL9:<br>		push eax;<br>		push ebx;<br>		lea eax, dword ptr ds : [ebp - <span class="hljs-number">0x0</span>] ; <span class="hljs-comment">//将ebp的地址存放于eax</span><br>		add dword ptr ss : [eax - <span class="hljs-number">0x50</span>] , <span class="hljs-number">26</span>; <span class="hljs-comment">//该地址存放的值正好是函数返回值,</span><br>		<span class="hljs-comment">//不过该地址并不固定,根据调试所得。加26正好可以跳到下面的mov指令,该值也是调试计算所得</span><br>		pop eax;<br>		pop ebx;<br>		pop eax;<br>		jmp eax;<br>        ;等价于 call [eip+<span class="hljs-number">3</span>]<br>		_emit <span class="hljs-number">0xE8</span>;<br>		_emit <span class="hljs-number">0x03</span>;<br>		_emit <span class="hljs-number">0x00</span>;<br>		_emit <span class="hljs-number">0x00</span>;<br>		_emit <span class="hljs-number">0x00</span>;<br>		mov eax, dword ptr ss : [esp - <span class="hljs-number">8</span>] ; <span class="hljs-comment">//将原本的eax值返回eax寄存器</span><br>	&#125;<br>	__asm&#123;<br>		pop edi<br>		pop esi<br>		pop ebx<br>		mov esp, ebp<br>		pop ebp<br>		ret<br>	&#125;<br>&#125;<br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;hello world!\n&quot;</span>);<br>	<span class="hljs-type">int</span> *b = (<span class="hljs-type">int</span>*)<span class="hljs-built_in">malloc</span>(<span class="hljs-keyword">sizeof</span>(<span class="hljs-type">int</span>));<br>	example5(b);<br>	<span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;b = %d\n&quot;</span>, *b);<br>	<span class="hljs-built_in">free</span>(b);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>在ida9.2中，无需patch就能反汇编，因为其中的花指令是由<strong>无ret的call和jmp</strong>实现的，这对ida的递归扫描算法没有任何影响。</p>
+<p><img src="/../images/Junk-Instructions-Principle-Detection-Removal/image-20250915234122669.png" srcset="/img/loading.gif" lazyload alt="image-20250915234122669"></p>
+<h3 id="2-6-函数返回值花指令"><a href="#2-6-函数返回值花指令" class="headerlink" title="2.6 函数返回值花指令"></a>2.6 函数返回值花指令</h3><p>​	有些函数在特定情况下返回值是固定的，可以用以构造花指令。比如我们自己写的函数，返回值可以是<strong>任意非零整数</strong>，就可以自己<strong>构造永恒跳转</strong>。</p>
+<p>​	还有些API函数也是如此，比如在Win下<code>HMODULE LoadLibraryA(LPCSTR lpLibFileName);</code>函数，如果我们故意传入一个<strong>不存在</strong>的模块名称，那么他就会返回一个<strong>确定的值NULL</strong>，此时就可以通过这个函数来构造永恒跳转。</p>
+<p>​	这种花指令和跳转构造的花指令原理一致，只是需要显式的<code>xor ebx, ebx</code>，因此也不要还原<code>ebx</code>，更加隐蔽。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs asm">#include&lt;stdio.h&gt;<br>#include&lt;Windows.h&gt;<br><br>int main() &#123;<br>	LoadLibrary(L&quot;./deadbeef&quot;);<br>	__asm &#123;<br>		cmp eax, 0;<br>		jc LABEL6_1;<br>		jnc LABEL6_2;<br>		LABEL6_1:<br>			_emit 0xE8;<br>		LABEL6_2:<br>	&#125;<br>	printf(&quot;Hello World!\n&quot;);<br>	return 0;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>​	代码中存在<code>jc/jnc</code>，但是实际上不存在<code>deadbeef</code>这个模块，所以<code>LoadLibrary</code>返回值一点是<code>NULL</code>，只有<code>jnc</code>起作用。<strong>这种花指令的识别需要熟悉<code>api</code>函数的返回值，以及正确分析程序所需的资源和运行时环境</strong>。识别与去除需要一定的综合判断和细节。</p>
+<p><img src="/../images/Junk-Instructions-Principle-Detection-Removal/image-20250916000309221.png" srcset="/img/loading.gif" lazyload alt="image-20250916000309221"></p>
+<p>动态调试看程序的执行流实际跳转到什么位置，其余的junk_code直接patch即可。</p>
+<p><img src="/../images/Junk-Instructions-Principle-Detection-Removal/image-20250916000548664.png" srcset="/img/loading.gif" lazyload alt="image-20250916000548664"></p>
+<h3 id="2-7-指令数据复用花指令（典型的可执行花指令）"><a href="#2-7-指令数据复用花指令（典型的可执行花指令）" class="headerlink" title="2.7 指令数据复用花指令（典型的可执行花指令）"></a>2.7 指令数据复用花指令（典型的可执行花指令）</h3><p>​	正常情况的代码，编译后一个字节只属于一条指令，ida在反汇编分析时，也遵循这个规。，但是如果是用_emit精心设计opcode，可以实现一个字节属于多条指令。比如：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span><span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-type">int</span> <span class="hljs-title function_">main</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-comment">// 可以放在任何位置的花指令</span><br>    __asm &#123;<br>        _emit <span class="hljs-number">0xeb</span>;<br>        _emit <span class="hljs-number">0xff</span>;<br>        _emit <span class="hljs-number">0xc0</span>;<br>        _emit <span class="hljs-number">0x48</span>;<br>    &#125;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;hello world!\n&quot;</span>);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>在ida中如下：</p>
+<p><img src="/../images/Junk-Instructions-Principle-Detection-Removal/image-20250916002947562.png" srcset="/img/loading.gif" lazyload alt="image-20250916002947562"></p>
+<p>​	先解释一下指令<code>EB xx</code>，含义是：<code>jmp rel8</code>，短跳转，<code>xx</code>是一个8比特的偏移量(有符号数)。如果<code>xx = 0xff</code>，而在计算机中，整数都是以补码表示，8比特的有符号数0xff是-1。因此，<code>EB FF</code>等价于<code>jmp [eip - 1]</code>。以ida中地址为0x411887处的代码为例。执行<code>EB FF</code>前，eip &#x3D; 0x411889，执行<code>EB FF</code>后，eip &#x3D; 0x411888，等价于将已经执行过的<code>FF</code>重新执行一遍，这时候的<code>FF C0</code>和<code>48</code>分别是<code>inc eax</code>和<code>dec eax</code>。</p>
+<p><img src="/../images/Junk-Instructions-Principle-Detection-Removal/image-20250916004057492.png" srcset="/img/loading.gif" lazyload alt="image-20250916004057492"></p>
+<p>​	等价于什么都没做。但是却让ida反汇编出错。这种花指令的识别和去除有较大难度。<strong>需要动态调试才能发现四字节的junk_code</strong>。</p>
+<h3 id="2-8-间接跳转花指令"><a href="#2-8-间接跳转花指令" class="headerlink" title="2.8 间接跳转花指令"></a>2.8 间接跳转花指令</h3><p>​	将跳转地址存于寄存器中，需要运行时才能知道具体的跳转地址。这类花指令常见于定长指令集的架构，如arm。</p>
+<p><img src="/../images/Junk-Instructions-Principle-Detection-Removal/image-20250916014015621.png" srcset="/img/loading.gif" lazyload alt="image-20250916014015621"></p>
+<h2 id="三、花指令的分析方法"><a href="#三、花指令的分析方法" class="headerlink" title="三、花指令的分析方法"></a>三、花指令的分析方法</h2><h3 id="3-1-调试观察法"><a href="#3-1-调试观察法" class="headerlink" title="3.1 调试观察法"></a>3.1 调试观察法</h3><p>​	花指令不会干扰正常代码：花指令内部如果涉及到寄存器的使用，一般会将其保存在栈中，利用这个弱点，我们可以通过观察 sp 寄存器来判断花指令的入口和出口。大部分情况下，花指令可以直接使用相同长度的 nop （0x90） 替换。</p>
+<h3 id="3-2-花指令序列批量替换"><a href="#3-2-花指令序列批量替换" class="headerlink" title="3.2 花指令序列批量替换"></a>3.2 花指令序列批量替换</h3><p>​	在上一节中，我们提到如下花指令可以插入在任意位置，以至于很可能大量出现同样的花指令。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs c">__asm &#123;<br>    _emit <span class="hljs-number">0xeb</span>;<br>    _emit <span class="hljs-number">0xff</span>;<br>    _emit <span class="hljs-number">0xc0</span>;<br>    _emit <span class="hljs-number">0x48</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>​	这大大降低了开发大量花指令的难度，如果我们总是一条一条的分析、patch，会花很多时间。</p>
+<p>​	考虑这种情况，我们可以将16进制数据批量查找替换：EBFFC048  —-&gt;  90909090。推荐010 Editor或者Winhex。</p>
+<p>​	注意：如果花指令的模式太短，不建议批量替换，避免破坏正常指令。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/reverse/" class="print-no-link">#reverse</a>
+      
+        <a href="/tags/junkcode/" class="print-no-link">#junkcode</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Junk-Instructions-Principle-Detection-Removal</div>
+      <div>https://zhaoyinshan.github.io/2025/06/22/Junk-Instructions-Principle-Detection-Removal/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>Author</div>
+          <div>Ys Zhao</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>Posted on</div>
+          <div>June 22, 2025</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>Licensed under</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - Attribution">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="NC - Non-commercial">
+                    <i class="iconfont icon-cc-nc"></i>
+                  </span>
+                </a>
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="SA - Share-alike">
+                    <i class="iconfont icon-cc-sa"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/12/31/php-hash-bypass/" title="php-hash-bypass">
+                        <span class="hidden-mobile">php-hash-bypass</span>
+                        <span class="visible-mobile">Next</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"Z1XmNsyzvPCeewc0LVMF9fNz-gzGzoHsz","appKey":"9UFExFuCt1wUgYwizqPZnI1s","path":"window.location.pathname","placeholder":null,"avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":"//i0.hdslb.com/bfs/emote/","emojiMaps":{"脱单doge":"bf7e00ecab02171f8461ee8cf439c73db9797748.png","热":"4e58a2a6f5f1580ac33df2d2cf7ecad7d9ab3635.png","微笑":"685612eadc33f6bc233776c6241813385844f182.png","口罩":"3ad2f66b151496d2a5fb0a8ea75f32265d778dd3.png","doge":"3087d273a78ccaff4bb1e9972e2ba2a7583c9f11.png","妙啊":"b4cb77159d58614a9b787b91b1cd22a81f383535.png","OK":"4683fd9ffc925fa6423110979d7dcac5eda297f4.png","星星眼":"63c9d1a31c0da745b61cdb35e0ecb28635675db2.png","辣眼睛":"35d62c496d1e4ea9e091243fa812866f5fecc101.png","吃瓜":"4191ce3c44c2b3df8fd97c33f85d3ab15f4f3c84.png","滑稽":"d15121545a99ac46774f1f4465b895fe2d1411c3.png","呲牙":"b5a5898491944a4268360f2e7a84623149672eb6.png","打call":"431432c43da3ee5aab5b0e4f8931953e649e9975.png","歪嘴":"4384050fbab0586259acdd170b510fe262f08a17.png","调皮":"8290b7308325e3179d2154327c85640af1528617.png","翻白眼":"eba54707c7168925b18f6f8b1f48d532fe08c2b1.png","灵魂出窍":"43d3db7d97343c01b47e22cfabeca84b4251f35a.png","再见":"fc510306bae26c9aec7e287cdf201ded27b065b9.png","嗑瓜子":"28a91da1685d90124cfeead74622e1ebb417c0eb.png","笑哭":"c3043ba94babf824dea03ce500d0e73763bf4f40.png","藏狐":"ba0937ef6f3ccca85e2e0047e6263f3b4da37201.png","脸红":"0922c375da40e6b69002bd89b858572f424dcfca.png","给心心":"1597302b98827463f5b75c7cac1f29ea6ce572c4.png","嘟嘟":"abd7404537d8162720ccbba9e0a8cdf75547e07a.png","哦呼":"362bded07ea5434886271d23fa25f5d85d8af06c.png","喜欢":"8a10a4d73a89f665feff3d46ca56e83dc68f9eb8.png","酸了":"92b1c8cbceea3ae0e8e32253ea414783e8ba7806.png","嫌弃":"de4c0783aaa60ec03de0a2b90858927bfad7154b.png","大哭":"2caafee2e5db4db72104650d87810cc2c123fc86.png","害羞":"9d2ec4e1fbd6cb1b4d12d2bbbdd124ccb83ddfda.png","疑惑":"b7840db4b1f9f4726b7cb23c0972720c1698d661.png","喜极而泣":"485a7e0c01c2d70707daae53bee4a9e2e31ef1ed.png","奸笑":"bb84906573472f0a84cebad1e9000eb6164a6f5a.png","阴险":"ba8d5f8e7d136d59aab52c40fd3b8a43419eb03c.png","囧":"12e41d357a9807cc80ef1e1ed258127fcc791424.png","呆":"33ad6000d9f9f168a0976bc60937786f239e5d8c.png","大笑":"ca94ad1c7e6dac895eb5b33b7836b634c614d1c0.png","惊喜":"0afecaf3a3499479af946f29749e1a6c285b6f65.png","doge_金箍":"aadaca1895e09c5596fc6365192ec93a23718cf0.png","奋斗":"bb2060c15dba7d3fd731c35079d1617f1afe3376.png","哈欠":"888d877729cbec444ddbd1cf4c9af155a7a06086.png","抓狂":"4c87afff88c22439c45b79e9d2035d21d5622eba.png","偷笑":"6c49d226e76c42cd8002abc47b3112bc5a92f66a.png","惊讶":"f8e9a59cad52ae1a19622805696a35f0a0d853f3.png","抠鼻":"cb89184c97e3f6d50acfd7961c313ce50360d70f.png","捂脸":"6921bb43f0c634870b92f4a8ad41dada94a5296d.png","无语":"44667b7d9349957e903b1b62cb91fb9b13720f04.png","点赞":"1a67265993913f4c35d15a6028a30724e83e7d35.png","笑":"81edf17314cea3b48674312b4364df44d5c01f17.png","傲娇":"010540d0f61220a0db4922e4a679a1d8eca94f4e.png","冷":"cb0ebbd0668640f07ebfc0e03f7a18a8cd00b4ed.png","委屈":"d2f26cbdd6c96960320af03f5514c5b524990840.png","尴尬":"cb321684ed5ce6eacdc2699092ab8fe7679e4fda.png","生气":"3195714219c4b582a4fb02033dd1519913d0246d.png","生病":"0f25ce04ae1d7baf98650986454c634f6612cb76.png","疼":"905fd9a99ec316e353b9bd4ecd49a5f0a301eabf.png","鼓掌":"895d1fc616b4b6c830cf96012880818c0e1de00d.png","保佑":"fafe8d3de0dc139ebe995491d2dac458a865fb30.png","加油":"c7aaeacb21e107292d3bb053e5abde4a4459ed30.png","响指":"1b5c53cf14336903e1d2ae3527ca380a1256a077.png","嘘声":"e64af664d20716e090f10411496998095f62f844.png","墨镜":"3a03aebfc06339d86a68c2d893303b46f4b85771.png","思考":"cfa9b7e89e4bfe04bbcd34ccb1b0df37f4fa905c.png","抱拳":"89516218158dbea18ab78e8873060bf95d33bbbe.png","捂眼":"c5c6d6982e1e53e478daae554b239f2b227b172b.png","撇嘴":"531863568e5668c5ac181d395508a0eeb1f0cda4.png","支持":"3c210366a5585706c09d4c686a9d942b39feeb50.png","生气_金箍":"fb3fbcf44157a5ba460b62341a86b38c11e7a664.png","胜利":"b49fa9f4b1e7c3477918153b82c60b114d87347c.png","难过":"a651db36701610aa70a781fa98c07c9789b11543.png","雪花":"a41813c4edf8782047e172c884ebd4507ce5e449.png","黑眼圈_金箍":"3d8edacc6efa4bc397642ee2bdc688c2eb976b4f.png"},"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>Table of Contents</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">Search</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">Keyword</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        Views: 
+        <span id="leancloud-site-pv"></span>
+        
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        Visitors: 
+        <span id="leancloud-site-uv"></span>
+        
+      </span>
+    
+    
+
+  
+
+</div>
+
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">Blog works best with JavaScript enabled</div>
+  </noscript>
+</body>
+</html>
